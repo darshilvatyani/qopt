@@ -1,0 +1,9 @@
+node_modules/
+.pgdata/
+.cache/
+.env
+dist/
+eval/results/*.json
+!eval/results/.gitkeep
+*.log
+.DS_Store

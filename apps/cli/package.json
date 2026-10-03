@@ -1,0 +1,11 @@
+{
+  "name": "@qopt/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": { "qopt": "./src/index.ts" },
+  "dependencies": {
+    "@qopt/core": "*",
+    "commander": "^15.0.0"
+  }
+}

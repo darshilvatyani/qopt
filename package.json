@@ -1,0 +1,35 @@
+{
+  "name": "qopt",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Postgres slow-query advisor: LLM + RAG suggestions, validated with HypoPG and a shadow database",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "db:local": "bash scripts/local-db.sh",
+    "db:up": "docker compose up -d --build --wait",
+    "db:down": "docker compose down",
+    "qopt": "tsx apps/cli/src/index.ts",
+    "api": "tsx watch apps/api/src/server.ts",
+    "web": "npm run dev -w @qopt/web",
+    "dev": "concurrently -k -n api,web -c blue,magenta \"npm:api\" \"npm:web\"",
+    "build:web": "npm run build -w @qopt/web",
+    "start": "tsx apps/api/src/server.ts",
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "typecheck": "tsc -p packages/core --noEmit && tsc -p apps/cli --noEmit && tsc -p apps/api --noEmit && tsc -p apps/web --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "concurrently": "^10.0.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  }
+}

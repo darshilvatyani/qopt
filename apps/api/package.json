@@ -1,0 +1,12 @@
+{
+  "name": "@qopt/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@fastify/cors": "^11.3.0",
+    "@fastify/static": "^10.1.5",
+    "@qopt/core": "*",
+    "fastify": "^5.12.5"
+  }
+}

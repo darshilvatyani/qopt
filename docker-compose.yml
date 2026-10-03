@@ -1,0 +1,76 @@
+# Three Postgres 17 instances, same roles as scripts/local-db.sh:
+#   target :5433  the database being tuned (pg_stat_statements + auto_explain -> JSON logs)
+#   shadow :5434  lab copy; candidates are executed here inside rolled-back transactions
+#   meta   :5435  qopt's own storage (doc chunks + pgvector embeddings, analysis runs)
+name: qopt
+
+x-postgres: &postgres
+  build: ./docker
+  image: qopt-postgres:17
+  shm_size: 256mb # parallel hash joins need more than Docker's 64MB default
+  environment:
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    POSTGRES_DB: qopt
+  healthcheck:
+    test: ['CMD-SHELL', 'pg_isready -U postgres -d qopt']
+    interval: 2s
+    timeout: 3s
+    retries: 30
+
+services:
+  target:
+    <<: *postgres
+    ports: ['5433:5432']
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=pg_stat_statements,auto_explain
+      - -c
+      - compute_query_id=on
+      - -c
+      - pg_stat_statements.track=top
+      - -c
+      - pg_stat_statements.track_utility=off
+      # 5ms suits the demo workload; use 100ms+ on a real system.
+      - -c
+      - auto_explain.log_min_duration=5ms
+      - -c
+      - auto_explain.log_analyze=on
+      - -c
+      - auto_explain.log_buffers=on
+      - -c
+      - auto_explain.log_timing=on
+      - -c
+      - auto_explain.log_verbose=on
+      - -c
+      - auto_explain.log_format=json
+      - -c
+      - logging_collector=on
+      - -c
+      - log_destination=jsonlog
+      - -c
+      - log_directory=log
+      - -c
+      - log_filename=postgresql-%Y-%m-%d.log
+      - -c
+      - track_io_timing=on
+      - -c
+      - shared_buffers=256MB
+    volumes: ['target-data:/var/lib/postgresql/data']
+
+  shadow:
+    <<: *postgres
+    ports: ['5434:5432']
+    command: ['postgres', '-c', 'track_io_timing=on', '-c', 'shared_buffers=256MB']
+    volumes: ['shadow-data:/var/lib/postgresql/data']
+
+  meta:
+    <<: *postgres
+    ports: ['5435:5432']
+    volumes: ['meta-data:/var/lib/postgresql/data']
+
+volumes:
+  target-data: {}
+  shadow-data: {}
+  meta-data: {}
